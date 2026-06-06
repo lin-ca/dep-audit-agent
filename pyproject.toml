@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "pydantic>=2.12.5",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -49,9 +51,12 @@ known-first-party = ["dep_audit_agent"]
 
 [tool.mypy]
 python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+strict = true
+# Note: If mypy strict mode produces too many errors, delete it
+# and activate these three flags instead
+# warn_return_any = true
+# warn_unused_configs = true
+# disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
