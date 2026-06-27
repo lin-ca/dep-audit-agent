@@ -2,12 +2,15 @@
 
 import pytest
 
-from dep_audit_agent.models import Dependency, Severity
+from dep_audit_agent.models import Dependency, DependencyVersion, Severity
 
 
 @pytest.fixture
 def dep() -> Dependency:
-    return Dependency(name="requests", version="2.28.0")
+    return Dependency(
+        name="requests",
+        versions=[DependencyVersion(version_str="2.28.0", operator="==")],
+    )
 
 
 @pytest.fixture
