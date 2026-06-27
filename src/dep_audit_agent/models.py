@@ -2,13 +2,21 @@
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+type OPERATOR = Literal[">=", "<=", ">", "<", "==", "!=", "~="]
+
+
+class DependencyVersion(BaseModel):
+    version_str: str
+    operator: OPERATOR = Field(description="Operator for specifying version number")
 
 
 class Dependency(BaseModel):
     name: str
-    version: str | None
+    versions: list[DependencyVersion]
     ecosystem: str = "PyPI"
 
 
