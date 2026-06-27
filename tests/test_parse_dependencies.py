@@ -105,7 +105,7 @@ def test_parse_text_file_skipped_lines(tmp_path: Path, line: str) -> None:
 
 
 def test_parse_text_file_example_file() -> None:
-    example = Path(__file__).parent.parent / "example_requirements.txt"
+    example = Path(__file__).parent.parent / "example_files/example_requirements.txt"
     result = parse_text_file(example)
     names = {d.name for d in result}
     assert "requests" in names
