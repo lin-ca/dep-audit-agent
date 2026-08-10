@@ -17,3 +17,6 @@ wheels/
 
 # MacOS
 .DS_Store
+
+# CLAUDE.md
+CLAUDE.md
