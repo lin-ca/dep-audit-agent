@@ -23,6 +23,7 @@ def parse_dependencies(deps: list[str]) -> list[Dependency]:
 def parse_toml_file(toml_file: Path) -> list[Dependency]:
     with open(toml_file, "rb") as f:
         data = tomllib.load(f)
+    # Only [project.dependencies] is audited; optional-dependencies and dev groups are out of scope
     deps = data.get("project", {}).get("dependencies", [])
     return parse_dependencies(deps)
 

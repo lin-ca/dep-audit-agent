@@ -51,6 +51,19 @@ class AuditReport(BaseModel):
     metadata: Metadata
 
 
+class OSVVulnerability(BaseModel):
+    id: str
+    modified: datetime
+
+
+class OSVQueryResult(BaseModel):
+    vulns: list[OSVVulnerability] = []
+
+
+class OSVBatchResponse(BaseModel):
+    results: list[OSVQueryResult]
+
+
 class AgentPlan(BaseModel):
     """Ordered list of tool calls with parameters."""
 
