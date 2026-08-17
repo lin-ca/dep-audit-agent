@@ -1,5 +1,10 @@
-from httpx import AsyncClient
+from httpx import AsyncClient, HTTPStatusError, TimeoutException
+from pydantic import ValidationError
 
+from dep_audit_agent.connectors.exceptions import (
+    OSVRequestError,
+    OSVResponseValidationError,
+)
 from dep_audit_agent.models import Dependency, OSVBatchResponse
 
 
@@ -25,11 +30,16 @@ class OSVClient:
 
     async def batch_query(self, deps: list[Dependency]) -> OSVBatchResponse:
 
-        response = await self._client.post(
-            f"{self.BASE_URL}/querybatch",
-            json=self._build_payload(deps),
-        )
+        try:
+            response = await self._client.post(
+                f"{self.BASE_URL}/querybatch",
+                json=self._build_payload(deps),
+            )
+            response.raise_for_status()
+        except (HTTPStatusError, TimeoutException) as exc:
+            raise OSVRequestError(f"OSV request failed: {exc}") from exc
 
-        response.raise_for_status()
-
-        return OSVBatchResponse.model_validate(response.json())
+        try:
+            return OSVBatchResponse.model_validate(response.json())
+        except ValidationError as exc:
+            raise OSVResponseValidationError("OSV response failed validation") from exc
