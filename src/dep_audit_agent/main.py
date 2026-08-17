@@ -19,6 +19,11 @@ def _parse_file(file: Path) -> list[Dependency]:
 
 
 async def _run_pipeline(file: Path, _output: str) -> None:
+    """
+    Runs the dependency audit pipeline: parse -> query OSV.
+
+    Enrichment, prioritization, and report generation are not yet implemented.
+    """
     deps = _parse_file(file)
 
     async with httpx.AsyncClient() as http_client:
@@ -35,6 +40,7 @@ async def _run_pipeline(file: Path, _output: str) -> None:
 
 @app.command()
 def audit(file: Path, output: str = "./reports/") -> None:
+    """Audit a project's dependencies (pyproject.toml or requirements.txt) for known vulnerabilities."""
     asyncio.run(_run_pipeline(file, output))
 
 

@@ -52,15 +52,24 @@ class AuditReport(BaseModel):
 
 
 class OSVVulnerability(BaseModel):
+    """
+    Minimal vuln reference from OSV's batch query response. Only id and modified
+    are returned by querybatch; full details are fetched later in enrich_cve_details.
+    """
+
     id: str
     modified: datetime
 
 
 class OSVQueryResult(BaseModel):
+    """Vulnerabilities found for a single queried dependency version."""
+
     vulns: list[OSVVulnerability] = []
 
 
 class OSVBatchResponse(BaseModel):
+    """Validated shape of OSV.dev's /querybatch response, one result per query."""
+
     results: list[OSVQueryResult]
 
 

@@ -10,13 +10,21 @@ from dep_audit_agent.models import Dependency, OSVBatchResponse
 
 
 class OSVClient:
+    """
+    Client for connecting to the open-source OSV.dev API
+    to identify known third-party open source dependency vulnerabilities.
+    """
+
     BASE_URL = "https://api.osv.dev/v1"
 
     def __init__(self, http_client: AsyncClient):
         self._client = http_client
 
+    # use dict[str, Any] instead of a precise TypedDict (to avoid mypy's generic type error in strict mode).
     def _build_payload(self, deps: list[Dependency]) -> dict[str, Any]:
-
+        """
+        Builds the required payload structure required for the OSV.dev API querybatch endpoint.
+        """
         queries = []
 
         for dep in deps:
@@ -30,7 +38,9 @@ class OSVClient:
         return {"queries": queries}
 
     async def batch_query(self, deps: list[Dependency]) -> OSVBatchResponse:
-
+        """
+        Uses OSV.dev API's querybatch endpoint to query for multiple packages at once.
+        """
         try:
             response = await self._client.post(
                 f"{self.BASE_URL}/querybatch",
