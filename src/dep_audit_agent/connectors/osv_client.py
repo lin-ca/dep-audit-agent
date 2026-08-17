@@ -1,5 +1,4 @@
 from httpx import AsyncClient, HTTPStatusError, TimeoutException
-from pydantic import ValidationError
 
 from dep_audit_agent.connectors.exceptions import (
     OSVRequestError,
@@ -41,5 +40,7 @@ class OSVClient:
 
         try:
             return OSVBatchResponse.model_validate(response.json())
-        except ValidationError as exc:
+        # use ValueError (superclass of pydantic's ValidationError) to also catch
+        # json.JSONDecodeError if OSV api returns non-JSON response
+        except ValueError as exc:
             raise OSVResponseValidationError("OSV response failed validation") from exc
