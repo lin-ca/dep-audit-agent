@@ -1,3 +1,5 @@
+from typing import Any
+
 from httpx import AsyncClient, HTTPStatusError, TimeoutException
 
 from dep_audit_agent.connectors.exceptions import (
@@ -13,7 +15,7 @@ class OSVClient:
     def __init__(self, http_client: AsyncClient):
         self._client = http_client
 
-    def _build_payload(self, deps: list[Dependency]) -> dict:
+    def _build_payload(self, deps: list[Dependency]) -> dict[str, Any]:
 
         queries = []
 
