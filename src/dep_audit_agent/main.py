@@ -7,6 +7,7 @@ import typer
 from dep_audit_agent.connectors.osv_client import OSVClient
 from dep_audit_agent.models import Dependency
 from dep_audit_agent.tools.parse_dependencies import parse_text_file, parse_toml_file
+from dep_audit_agent.tools.prioritize import prioritize_findings
 from dep_audit_agent.tools.query_osv import batch_query_osv, enrich_cve_details
 
 app = typer.Typer()
@@ -20,9 +21,9 @@ def _parse_file(file: Path) -> list[Dependency]:
 
 async def _run_pipeline(file: Path, _output: str) -> None:
     """
-    Runs the dependency audit pipeline: parse -> query OSV -> enrich cve.
+    Runs the dependency audit pipeline: parse -> query OSV -> enrich cve -> prioritize.
 
-    Prioritization and report generation are not yet implemented.
+    Report generation is not yet implemented.
     """
     deps = _parse_file(file)
 
@@ -31,11 +32,12 @@ async def _run_pipeline(file: Path, _output: str) -> None:
         matches, unpinned = await batch_query_osv(deps, osv_client)
         findings = await enrich_cve_details(matches, osv_client)
 
-    print(f"Unpinned deps skipped: {unpinned}")
-    print(f"Findings: {findings}")
+    prioritized, flagged_unpinned = prioritize_findings(findings, unpinned)
 
-    # TODO: prioritize_findings(findings)
-    # TODO: generate_report(prioritized, output)
+    print(f"Unpinned deps skipped: {flagged_unpinned}")
+    print(f"Findings: {prioritized}")
+
+    # TODO: generate_report(prioritized, flagged_unpinned, output)
 
 
 @app.command()
