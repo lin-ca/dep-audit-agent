@@ -70,7 +70,7 @@ async def test_run_pipeline_queries_osv_and_prints_results(
 
     captured = capsys.readouterr()
     assert "Unpinned deps skipped: ['flask']" in captured.out
-    assert "OSV results:" in captured.out
+    assert "Findings: []" in captured.out
 
 
 async def test_run_pipeline_parses_file_before_querying(
