@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "cvss>=3.6",
     "httpx>=0.28.1",
     "packaging>=26.0",
     "pydantic>=2.12.5",
@@ -61,6 +62,10 @@ strict = true
 # warn_unused_configs = true
 # disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["cvss", "cvss.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

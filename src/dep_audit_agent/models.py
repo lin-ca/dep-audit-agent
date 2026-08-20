@@ -73,6 +73,63 @@ class OSVBatchResponse(BaseModel):
     results: list[OSVQueryResult]
 
 
+class DependencyVulnMatch(BaseModel):
+    """An OSV query result paired back with the (dependency, version) it was queried for."""
+
+    dependency: Dependency
+    version: DependencyVersion
+    vulns: list[OSVVulnerability]
+
+
+class OSVVulnRangeEvent(BaseModel):
+    """One boundary of an affected version range, e.g. {"introduced": "0"} or {"fixed": "2.29.0"}."""
+
+    introduced: str | None = None
+    fixed: str | None = None
+
+
+class OSVVulnRange(BaseModel):
+    type: str
+    events: list[OSVVulnRangeEvent] = []
+
+
+class OSVAffectedPackage(BaseModel):
+    name: str
+    ecosystem: str
+
+
+class OSVAffected(BaseModel):
+    """The affected package and version ranges for one entry in a vuln's `affected` list."""
+
+    package: OSVAffectedPackage
+    ranges: list[OSVVulnRange] = []
+
+
+class OSVVulnDatabaseSpecific(BaseModel):
+    severity: str | None = None
+
+
+class OSVSeverity(BaseModel):
+    """One CVSS scoring entry, e.g. {"type": "CVSS_V3", "score": "CVSS:3.1/AV:N/..."}."""
+
+    type: str
+    score: str
+
+
+class OSVVulnDetail(BaseModel):
+    """
+    Validated shape of OSV.dev's GET /v1/vulns/{id} response (fields we use).
+    `summary`/`details` are untrusted external text — sanitize before passing to an LLM.
+    """
+
+    id: str
+    summary: str | None = None
+    details: str | None = None
+    affected: list[OSVAffected] = []
+    severity: list[OSVSeverity] = []
+    database_specific: OSVVulnDatabaseSpecific | None = None
+
+
 class AgentPlan(BaseModel):
     """Ordered list of tool calls with parameters."""
 
