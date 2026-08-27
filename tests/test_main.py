@@ -6,10 +6,43 @@ from pathlib import Path
 import httpx
 import pytest
 
+from dep_audit_agent.config import get_settings
 from dep_audit_agent.main import _parse_file, _run_pipeline
-from dep_audit_agent.models import Dependency
+from dep_audit_agent.models import Dependency, VulnerabilityFinding
 
 PatchAsyncClient = Callable[[Callable[[httpx.Request], httpx.Response]], None]
+
+
+@pytest.fixture(autouse=True)
+def _anthropic_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_run_pipeline reads settings.anthropic_api_key; provide a dummy one so
+    Settings validation succeeds without touching real credentials."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+@pytest.fixture
+def stub_generate_report(
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[list[VulnerabilityFinding], list[str]]]:
+    """Replaces the real Anthropic-backed generate_report with a stub so pipeline
+    tests don't make network calls; records the (findings, unpinned) it was called with."""
+    calls: list[tuple[list[VulnerabilityFinding], list[str]]] = []
+
+    async def _fake_generate_report(
+        findings: list[VulnerabilityFinding],
+        unpinned_deps_flagged: list[str],
+        _connector: object,
+        output_dir: Path,
+    ) -> Path:
+        calls.append((findings, unpinned_deps_flagged))
+        return output_dir / "report.md"
+
+    monkeypatch.setattr("dep_audit_agent.main.generate_report", _fake_generate_report)
+    return calls
+
 
 # ---------------------------------------------------------------------------
 # _parse_file dispatch
@@ -53,9 +86,10 @@ def test_parse_file_dispatches_by_suffix(
 # ---------------------------------------------------------------------------
 
 
-async def test_run_pipeline_queries_osv_and_prints_results(
+async def test_run_pipeline_queries_osv_and_generates_report(
     tmp_path: Path,
     patch_async_client: PatchAsyncClient,
+    stub_generate_report: list[tuple[list[VulnerabilityFinding], list[str]]],
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     req_file = tmp_path / "requirements.txt"
@@ -66,17 +100,18 @@ async def test_run_pipeline_queries_osv_and_prints_results(
 
     patch_async_client(handler)
 
-    await _run_pipeline(req_file, "./reports/")
+    await _run_pipeline(req_file, str(tmp_path / "reports"))
 
+    assert stub_generate_report == [([], ["flask"])]
     captured = capsys.readouterr()
-    assert "Unpinned deps skipped: ['flask']" in captured.out
-    assert "Findings: []" in captured.out
+    assert "Report written to" in captured.out
 
 
 async def test_run_pipeline_parses_file_before_querying(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     patch_async_client: PatchAsyncClient,
+    stub_generate_report: list[tuple[list[VulnerabilityFinding], list[str]]],
 ) -> None:
     req_file = tmp_path / "pyproject.toml"
     req_file.write_text('[project]\ndependencies = ["requests==2.28.0"]\n')
@@ -93,6 +128,7 @@ async def test_run_pipeline_parses_file_before_querying(
     monkeypatch.setattr("dep_audit_agent.main._parse_file", fake_parse_file)
     patch_async_client(handler)
 
-    await _run_pipeline(req_file, "./reports/")
+    await _run_pipeline(req_file, str(tmp_path / "reports"))
 
     assert parsed == [req_file]
+    assert len(stub_generate_report) == 1

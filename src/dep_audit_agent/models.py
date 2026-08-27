@@ -128,10 +128,3 @@ class OSVVulnDetail(BaseModel):
     affected: list[OSVAffected] = []
     severity: list[OSVSeverity] = []
     database_specific: OSVVulnDatabaseSpecific | None = None
-
-
-class AgentPlan(BaseModel):
-    """Ordered list of tool calls with parameters."""
-
-    # TODO Fill in when implementing agent
-    pass

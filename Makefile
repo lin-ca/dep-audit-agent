@@ -6,11 +6,8 @@ help: ## Show this help message
 install: ## Install dependencies (including dev)
 	uv sync --extra dev
 
-run: ## Start the API server
-	@echo "Not implemented yet"
-
-dev: ## Start the API server with auto-reload
-	@echo "Not implemented yet"
+run: ## Run the CLI against the example pyproject.toml (requires ANTHROPIC_API_KEY)
+	uv run dep-audit-agent example_files/example_pyproject.toml
 
 lint: ## Run linting checks
 	uv run ruff check src/ tests/

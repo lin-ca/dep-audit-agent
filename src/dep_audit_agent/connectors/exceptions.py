@@ -1,4 +1,4 @@
-"""Custom exceptions for connecting to OSV api."""
+"""Custom exceptions for the OSV and Claude connectors."""
 
 
 class OSVClientError(Exception):
@@ -11,3 +11,11 @@ class OSVRequestError(OSVClientError):
 
 class OSVResponseValidationError(OSVClientError):
     """Raised when the OSV response fails Pydantic validation."""
+
+
+class ClaudeClientError(Exception):
+    """Base exception for the Claude connector."""
+
+
+class ClaudeRequestError(ClaudeClientError):
+    """Raised on HTTP errors, timeouts, or rate limits from the Anthropic API."""
