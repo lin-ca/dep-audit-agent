@@ -55,3 +55,10 @@ One consequence worth being explicit about: what shipped is not an agent in the 
 - **Fault isolation** — a single failed OSV lookup or malformed advisory is skipped, not raised: one bad vulnerability record can't take down the batch (`return_exceptions=True` and the per-finding `try/except` in [`query_osv.py`](src/dep_audit_agent/tools/query_osv.py)).
 - **Input validation** — dependency strings are parsed via `packaging.requirements.Requirement`, which rejects malformed PEP 508 syntax before it can reach a tool call.
 - **Sandboxed scope** — the pipeline has no write access beyond the generated report file, no network access beyond OSV.dev and the Anthropic API, and no ability to modify the audited project.
+
+## Possible next steps
+
+Some additions that would still be worth including:
+
+- **Eval set + CI gating** — a small, fixed set of representative audit runs (a known-vulnerable package, a clean package) with expected findings committed as golden output, so the one LLM call in the pipeline has a regression signal to check against, not just the unit tests that already cover the deterministic steps.
+- **Structured logging** — context-rich logs across each pipeline step (tool name, OSV query outcome, finding counts), with CVE description text explicitly excluded from the log stream.
